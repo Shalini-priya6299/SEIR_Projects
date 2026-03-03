@@ -1,28 +1,35 @@
-import requests
+import sys
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin 
+from urllib.parse import urljoin
 
-url = input("Enter URL: ")
+url = sys.argv[1]
 
-response = requests.get(url)
-data = BeautifulSoup(response.text, "html.parser")
+if not url.startswith("http"):
+    url = "https://" + url
 
-print("PAGE TITLE:")
-if data.title:
-    print(data.title.get_text())
+options = Options()
+options.add_argument("--headless")
+options.add_experimental_option("excludeSwitches", ["enable-logging"])
+driver = webdriver.Chrome(options=options)
+driver.get(url)
+
+soup = BeautifulSoup(driver.page_source, "html.parser")
+driver.quit()
+
+title = soup.title.get_text() 
+if soup.title:
+    print("Title:\n",title)
 else:
-    print("No Title Found!")
+    print("No Title Found")
 
-print("\nPAGE BODY:")
-if data.body:
-  print(data.body.get_text())
+body = soup.body.get_text() 
+if soup.body:
+    print("Body:\n", body)
 else:
-   print("No Body Found!")
+    print("No Body Found")
 
-print("\nLINKS:")
-for link in data.find_all('a'):
-    if link.get("href"):
-      print(urljoin(url, link.get('href')))
-    else:
-      print("No link Found!")
-
+print("Links")
+for link in soup.find_all("a", href=True):
+    print(urljoin(url, link["href"]))
