@@ -25,3 +25,4 @@ for link in data.find_all('a'):
       print(urljoin(url, link.get('href')))
     else:
       print("No link Found!")
+
